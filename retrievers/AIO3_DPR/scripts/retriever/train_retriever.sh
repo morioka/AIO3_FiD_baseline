@@ -19,7 +19,8 @@ test "${FLG_G}" = "TRUE" && export CUDA_VISIBLE_DEVICES=$GPU
 # Train Retriever ======================================
 
 set -ex
-source scripts/configs/config.pth
+#source scripts/configs/config.pth
+source scripts/configs/config_train.pth
 
 DIR_PROJECT=$DIR_DPR/$NAME
 mkdir -p $DIR_PROJECT/retriever/logs

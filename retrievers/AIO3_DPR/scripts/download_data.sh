@@ -46,6 +46,20 @@ DIR_DPR=model
 DIR_RESULT=result
 END
 
+cat << END > scripts/configs/config_train.pth
+# data
+WIKI_FILE=datasets/wiki/jawiki-20220404-c400-large.tsv.gz
+TRAIN_FILE=datasets/retriever/aio_02_train.json.gz
+DEV_FILE=datasets/retriever/aio_02_dev.json.gz
+TEST_FILE=datasets/retriever/aio_02_dev.json.gz
+
+# dest (To create models, embeddings, etc under $DIR_DPR/$NAME)
+DIR_DPR=model
+
+# result (To create results under $DIR_RESULT/$NAME)
+DIR_RESULT=result
+END
+
 
 echo -en "\n===========================================\n"
 ls -R -lh $DEST
