@@ -8,6 +8,8 @@
 - 2022/11/17: Dockerfileに、トークナイザの事前ダウンロードコードを追記しました。また、ベースイメージを変更しました。
 - 2022/12/07: DPR および FiD の学習済みモデルの提供を終了しました。従って、ダウンロードスクリプトを実行してもモデルのダウンロードは行えません。
 
+- 2023/01/12: (wsl_rtx3060) Windows11 + Ubuntu22.04 on WSL2, Intel Core i7, RAM 80GB, RTX3060-12Gで動作させる際の修正内容を追記
+
 
 ## 目次
 
@@ -98,7 +100,7 @@ $ docker container run \
 
 ### Pytohn 仮想環境での対応
 
-Docker環境上で apex をインストールできなかったので、Python仮想環境を起こします。
+Docker環境上で apex をインストールできなかったこともあり、コンテナを用いずに Python仮想環境を起こします。
 
 #### Retriever 向け Python仮想環境
 
@@ -185,7 +187,7 @@ $ bash scripts/download_data.sh $datasets_dir
 - データセットの構築方法の詳細については、[retrievers/AIO3_DPR/data/README.md](retrievers/AIO3_DPR/data/README.md)を参照して下さい。
 
 
-### 学習済みモデルのダウンロード
+### (不可)学習済みモデルのダウンロード
 - 本節では既に学習・作成された、Retriever・文書エンベッディングのダウンロード方法について説明します。
 必要に応じてダウンロードし、解凍して下さい。
 - なお、Retriever の学習、および文書集合（Wikipedia）のエンコード方法の詳細については、[retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)を参照して下さい。
@@ -217,17 +219,16 @@ BiEncoderモデルの学習には、第三回訓練データではなく、第�
 
 ```bash
 $ pyenv shell aio3-retriever
+(aio3-retriever) $ save_dir="model/baseline"
+(aio3-retriever) $ targets="retriever,embeddings"
 (aio3-retriever) $ exp_name="baseline"
 (aio3-retriever) $ config_file="scripts/configs/retriever_base_rtx3060.json"
 
 (aio3-retriever) $ bash scripts/retriever/train_retriever.sh \
     -n $exp_name \
     -c $config_file
-```
 
-1a. 学習済みモデルの差し替え
-
-```bash
+# 学習済みモデルの差し替え
 (aio3-retriever) $ cp ${save_dir}/retriever/dpr_biencoder.59.2451.pt ${save_dir}/biencoder.pt
 ```
 
@@ -240,12 +241,10 @@ $ pyenv shell aio3-retriever
 (aio3-retriever) $ bash scripts/retriever/encode_ctxs.sh \
     -n $exp_name \
     -m $model_file
-```
 
-2a. 学習済みモデルの差し替え
-
-```bash
+# 学習済みモデルの差し替え
 (aio3-retriever) $ cp ${save_dir}/embeddings/emb_dpr_biencoder.59.2451.pickle ${save_dir}/embedding.pickle
+
 ```
 
 ### 設定
@@ -270,11 +269,11 @@ $ vim scripts/configs/config.pth
 ```bash
 # 実行例
 
-$ exp_name="baseline"
-$ model="${save_dir}/biencoder.pt"
-$ embed="${save_dir}/embedding.pickle"
+(aio3-retriever) $ exp_name="baseline"
+(aio3-retriever) $ model="${save_dir}/biencoder.pt"
+(aio3-retriever) $ embed="${save_dir}/embedding.pickle"
 
-$ bash scripts/retriever/retrieve_passage.sh \
+(aio3-retriever) $ bash scripts/retriever/retrieve_passage.sh \
     -n $exp_name \
     -m $model \
     -e $embed
@@ -331,10 +330,6 @@ DprRetrieved:
 設定が完了したら、次に Reader 用にデータセット形式を変換します。
 
 ```bash
-$ python prepro/convert_dataset.py DprRetrieved fusion_in_decoder
-```
-
-```bash
 $ pyenv shell aio3-retriever
 (aio3-retriever) $ python prepro/convert_dataset.py DprRetrieved fusion_in_decoder
 ```
@@ -387,7 +382,7 @@ $ pyenv shell aio3-retriever
 $ cd generators/fusion_in_decoder
 ```
 
-### 学習済みモデルのダウンロード
+### (不可)学習済みモデルのダウンロード
 - 本節では既に学習された Reader のダウンロード方法について説明します。
 必要に応じてダウンロードし、解凍して下さい。<br>
 - また、Reader (Fusion-in-Decoder) の学習については、[generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)を参照して下さい。
@@ -408,14 +403,17 @@ $ du -h ${fid_save_dir}/*
 
 ### Reader モデルの学習
 
-...
-
-
-### 学習済みモデルの差し替え
+[generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)の内容に倣う。
 
 ```bash
-mkdir -p ${fid_save_dir}
-cp -rp  model/fusion-in-decoder/checkpoint/best_dev/* ${fid_save_dir}
+$ pyenv shell aio3-reader
+(aio3-reader) $ bash scripts/train_generator.sh configs/train_generator_slud.yml
+
+# 学習済みモデルの差し替え
+$ fid_save_dir="models_and_results/baseline"
+$ targets="reader"
+$ mkdir -p ${fid_save_dir}
+$ cp -rp  model/fusion-in-decoder/checkpoint/best_dev/* ${fid_save_dir}
 ```
 
 ### 解答生成と評価
@@ -476,7 +474,7 @@ __Accuracy__
 
 #### 評価(補足)
 
-2023-01-13. step=5000で学習が打ち切られてしまったので(再起動?)、その時点のモデルでの評価
+2023-01-13. step=30000の設定のはずが、step=5000で学習が打ち切られてしまったので(Windowsの再起動?)、その時点のモデルでの評価。学習時間はおよそ11h30m。
 
 ```bash
 (aio3-reader) $ bash ./scripts/test_generator.sh configs/test_generator_slud.yml
@@ -488,7 +486,7 @@ __Accuracy__
 ```
 
 
-## submission.sh について
+## (不可)submission.sh について
 最終的に提出を行う Docker イメージ内で、与えられた質問データに対して推論を行うスクリプトです。
 
 このスクリプトを実行する際には、`Dockerfile`に下記のコードを記載した上で Docker イメージのビルドを行ってください。
