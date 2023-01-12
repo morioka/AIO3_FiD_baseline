@@ -17,3 +17,7 @@ scripts/abci
 
 log_*
 
+datasets/
+generators/fusion_in_decoder/model/
+retrievers/AIO3_DPR/model/
+generators/fusion_in_decoder/models_and_results/

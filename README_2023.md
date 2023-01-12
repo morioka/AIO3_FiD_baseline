@@ -96,6 +96,36 @@ $ docker container run \
       bash
 ```
 
+### Pytohn 仮想環境での対応
+
+Docker環境上で apex をインストールできなかったので、Python仮想環境を起こします。
+
+#### Retriever 向け Python仮想環境
+
+```bash
+pyenv install 3.8.9
+pyenv virtualenv 3.8.9 aio3-retriever
+pyenv shell aio3-retriever
+pip install --upgrade pip wheel
+pip install -r requirements.txt
+# apexのインストール
+pushd ~/aio/apex/
+pip install -v --disable-pip-version-check --no-cache-dir ./
+popd
+```
+#### Reader 向け Python仮想環境
+
+```bash
+pyenv install 3.8.9
+pyenv virtualenv 3.8.9 aio3-reader
+pyenv shell aio3-reader
+pip install --upgrade pip wheel
+pip install -r requirements.txt
+# apexのインストール
+pushd ~/aio/apex/
+pip install -v --disable-pip-version-check --no-cache-dir ./
+popd
+```
 
 ## Retriever (Dense Passage Retrieval)
 
@@ -167,6 +197,51 @@ $ gunzip ${save_dir}/*.gz
 $ du -h ${save_dir}/*
   2.5G    biencoder.pt
   13G     embedding.pickle
+```
+
+### Retriever モデルの学習
+
+手順は [retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)に従い、必要な修正を行った。
+
+BiEncoderモデルの学習には、第三回訓練データではなく、第三回訓練データに Wikipedia の記事段落の付与を行ったものを与える必要がある。これは、postive_ctx, negative_ctx を学習する必要があるため。このため `scripts/configs/config_train.pth` を用意し、`scripts/train_retriever.sh` ではそちらを参照させる。
+
+元からある `scripts/configs/config.pth` はそのままとしている。こちらはReaderでのデータセットの質問に関連する文書の抽出のために、質問データセット(第三回訓練データ、開発データ、評価データ)をエンコードする必要があるため。
+
+また、RTX3060-12G に収まるよう、バッチサイズを修正した。
+
+1. BiEncoder の学習
+
+```bash
+$ pyenv shell aio3-retriever
+(aio3-retriever) $ exp_name="baseline"
+(aio3-retriever) $ config_file="scripts/configs/retriever_base_rtx3060.json"
+
+(aio3-retriever) $ bash scripts/retriever/train_retriever.sh \
+    -n $exp_name \
+    -c $config_file
+```
+
+1a. 学習済みモデルの差し替え
+
+```bash
+(aio3-retriever) $ cp ${save_dir}/retriever/dpr_biencoder.59.2451.pt ${save_dir}/biencoder.pt
+```
+
+2. 文書集合のエンコード
+
+```bash
+(aio3-retriever) $ exp_name="baseline"
+(aio3-retriever) $ model_file=${save_dir}/biencoder.pt
+
+(aio3-retriever) $ bash scripts/retriever/encode_ctxs.sh \
+    -n $exp_name \
+    -m $model_file
+```
+
+2a. 学習済みモデルの差し替え
+
+```bash
+(aio3-retriever) $ cp ${save_dir}/embeddings/emb_dpr_biencoder.59.2451.pickle ${save_dir}/embedding.pickle
 ```
 
 ### 設定
@@ -255,6 +330,11 @@ DprRetrieved:
 $ python prepro/convert_dataset.py DprRetrieved fusion_in_decoder
 ```
 
+```bash
+$ pyenv shell aio3-retriever
+(aio3-retriever) $ python prepro/convert_dataset.py DprRetrieved fusion_in_decoder
+```
+
 変換後のデータセットは次のディレクトリに保存されます。
 
 ```yaml
@@ -322,6 +402,17 @@ $ du -h ${fid_save_dir}/*
   851M       pytorch_model.bin
 ```
 
+### Reader モデルの学習
+
+...
+
+
+### 学習済みモデルの差し替え
+
+```bash
+mkdir -p ${fid_save_dir}
+cp -rp  model/fusion-in-decoder/checkpoint/best_dev/* ${fid_save_dir}
+```
 
 ### 解答生成と評価
 
@@ -341,11 +432,12 @@ $ vim configs/test_generator_slud.yml
 
 学習済み生成モデルにより、解答を生成します。<br>
 下記スクリプトを実行することで、質問に対する答えをReaderが生成します。
-- [scripts/test_generator.sh](generators/fusion_in_decoder/scripts/test_generator.sh)
+- bash [scripts/test_generator.sh](generators/fusion_in_decoder/scripts/test_generator.sh) configs/test_generator_slud.yml
 
 ```bash
 # 実行例
-$ bash scripts/test_generator.sh configs/test_generator_slud.yml
+$ pyenv shell aio3-reader
+(aio3-reader) $ bash scripts/test_generator.sh configs/test_generator_slud.yml
 
 # 実行結果
 $ ls ${checkpoint_dir}/${name}
@@ -378,6 +470,18 @@ __Accuracy__
 {"qid": "AIO02-1005", "prediction": "デュース"}
 ```
 
+#### 評価(補足)
+
+2023-01-13. step=5000で学習が打ち切られてしまったので(再起動?)、その時点のモデルでの評価
+
+```bash
+(aio3-reader) $ bash ./scripts/test_generator.sh configs/test_generator_slud.yml
+2023-01-12 08:46:25 #101 INFO __main__ :::  Process rank: 0, total: 1000
+2023-01-12 08:46:25 #104 INFO __main__ :::  average = 0.437000
+2023-01-12 08:46:25 #106 INFO __main__ :::  EM 0.437000, Total number of example 1000
+2023-01-12 08:46:25 #164 INFO fid.util :::  WRITE ... models_and_results/baseline/fusion-in-decoder_test/final_output.jsonl
+20230112-0846
+```
 
 
 ## submission.sh について
