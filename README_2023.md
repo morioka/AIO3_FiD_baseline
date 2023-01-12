@@ -108,8 +108,10 @@ pyenv virtualenv 3.8.9 aio3-retriever
 pyenv shell aio3-retriever
 pip install --upgrade pip wheel
 pip install -r requirements.txt
+
 # apexのインストール
-pushd ~/aio/apex/
+git clone https://github.com/NVIDIA/apex
+pushd apex
 pip install -v --disable-pip-version-check --no-cache-dir ./
 popd
 ```
@@ -121,8 +123,10 @@ pyenv virtualenv 3.8.9 aio3-reader
 pyenv shell aio3-reader
 pip install --upgrade pip wheel
 pip install -r requirements.txt
+
 # apexのインストール
-pushd ~/aio/apex/
+git clone https://github.com/NVIDIA/apex
+pushd apex
 pip install -v --disable-pip-version-check --no-cache-dir ./
 popd
 ```
