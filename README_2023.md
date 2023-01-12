@@ -207,13 +207,15 @@ $ du -h ${save_dir}/*
 
 ### Retriever モデルの学習
 
-手順は [retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)に従い、必要な修正を行った。
+手順は [retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)に従い、必要な修正を行いました。
 
-BiEncoderモデルの学習には、第三回訓練データではなく、第三回訓練データに Wikipedia の記事段落の付与を行ったものを与える必要がある。これは、postive_ctx, negative_ctx を学習する必要があるため。このため `scripts/configs/config_train.pth` を用意し、`scripts/train_retriever.sh` ではそちらを参照させる。
+BiEncoderモデルの学習には、"第三回訓練データ"ではなく、"第三回訓練データに Wikipedia の記事段落の付与を行ったもの"を与える必要があります。これは、postive_ctx, negative_ctx を含めて学習する必要があるためです。このため `scripts/configs/config_train.pth` を用意し、`scripts/train_retriever.sh` ではそちらを参照するよう修正しました。
 
-元からある `scripts/configs/config.pth` はそのままとしている。こちらはReaderでのデータセットの質問に関連する文書の抽出のために、質問データセット(第三回訓練データ、開発データ、評価データ)をエンコードする必要があるため。
+元からある `scripts/configs/config.pth` はそのままとしています。こちらはReaderでのデータセットの質問に関連する文書の抽出 `scripts/retrieve_passage.sh` のために、質問データセット(第三回訓練データ、開発データ、評価データ)をエンコードする必要があるためです。
 
-また、RTX3060-12G に収まるよう、バッチサイズを修正した。
+また、RTX3060-12G に収まるよう、バッチサイズを修正しました(64->8)。
+
+学習結果は、上記の学習済モデルと同じ位置、同じ名前に再配置します。
 
 1. BiEncoder の学習
 
@@ -228,7 +230,7 @@ $ pyenv shell aio3-retriever
     -n $exp_name \
     -c $config_file
 
-# 学習済みモデルの差し替え
+# 学習済みモデルの再配置
 (aio3-retriever) $ cp ${save_dir}/retriever/dpr_biencoder.59.2451.pt ${save_dir}/biencoder.pt
 ```
 
@@ -242,7 +244,7 @@ $ pyenv shell aio3-retriever
     -n $exp_name \
     -m $model_file
 
-# 学習済みモデルの差し替え
+# 学習済みモデルの再配置
 (aio3-retriever) $ cp ${save_dir}/embeddings/emb_dpr_biencoder.59.2451.pickle ${save_dir}/embedding.pickle
 
 ```
@@ -337,7 +339,7 @@ $ pyenv shell aio3-retriever
 変換後のデータセットは次のディレクトリに保存されます。
 
 ```yaml
-/app/datasets/fusion_in_decoder/DprRetrieved/*.jsonl
+datasets/fusion_in_decoder/DprRetrieved/*.jsonl
 ```
 
 ### 形式
@@ -403,13 +405,13 @@ $ du -h ${fid_save_dir}/*
 
 ### Reader モデルの学習
 
-[generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)の内容に倣う。
+[generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)の内容に従います。上記の学習済モデルと同じ位置、同じ名前に再配置します。
 
 ```bash
 $ pyenv shell aio3-reader
 (aio3-reader) $ bash scripts/train_generator.sh configs/train_generator_slud.yml
 
-# 学習済みモデルの差し替え
+# 学習済みモデルの再配置
 $ fid_save_dir="models_and_results/baseline"
 $ targets="reader"
 $ mkdir -p ${fid_save_dir}
