@@ -18,11 +18,13 @@
 - ディレクトリ構造
 - 環境構築
   - コンテナの起動
+  - (追記)Pytohn 仮想環境での対応
 - [Dense Passage Retrieval](#retriever-dense-passage-retrieval)
     - データセット
       - ダウンロード
     - Retriever
       - 学習済みモデルのダウンロード
+      - (追記)Retriever モデルの学習
       - 設定
       - データセットの質問に関連する文書の抽出
 - [Fusion-in-Decoder](#reader-fusion-in-decoder)
@@ -31,7 +33,9 @@
       - 形式
     - Reader
       - 学習済みモデルのダウンロード
+      - (追記)Reader モデルの学習
       - 解答生成と評価
+      - (追記)解答生成と評価
 - submission.sh について
 - 謝辞・ライセンス
 
@@ -98,7 +102,7 @@ $ docker container run \
       bash
 ```
 
-### Pytohn 仮想環境での対応
+### (追記)Pytohn 仮想環境での対応
 
 Docker環境上で apex をインストールできなかったこともあり、コンテナを用いずに Python仮想環境を起こします。
 
@@ -187,7 +191,7 @@ $ bash scripts/download_data.sh $datasets_dir
 - データセットの構築方法の詳細については、[retrievers/AIO3_DPR/data/README.md](retrievers/AIO3_DPR/data/README.md)を参照して下さい。
 
 
-### (不可)学習済みモデルのダウンロード
+### (現状不可)学習済みモデルのダウンロード
 - 本節では既に学習・作成された、Retriever・文書エンベッディングのダウンロード方法について説明します。
 必要に応じてダウンロードし、解凍して下さい。
 - なお、Retriever の学習、および文書集合（Wikipedia）のエンコード方法の詳細については、[retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)を参照して下さい。
@@ -205,7 +209,7 @@ $ du -h ${save_dir}/*
   13G     embedding.pickle
 ```
 
-### Retriever モデルの学習
+### (追記)Retriever モデルの学習
 
 手順は [retrievers/AIO3_DPR/README.md](retrievers/AIO3_DPR/README.md)に従い、必要な修正を行いました。
 
@@ -384,7 +388,7 @@ datasets/fusion_in_decoder/DprRetrieved/*.jsonl
 $ cd generators/fusion_in_decoder
 ```
 
-### (不可)学習済みモデルのダウンロード
+### (現状不可)学習済みモデルのダウンロード
 - 本節では既に学習された Reader のダウンロード方法について説明します。
 必要に応じてダウンロードし、解凍して下さい。<br>
 - また、Reader (Fusion-in-Decoder) の学習については、[generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)を参照して下さい。
@@ -403,7 +407,7 @@ $ du -h ${fid_save_dir}/*
   851M       pytorch_model.bin
 ```
 
-### Reader モデルの学習
+### (追記)Reader モデルの学習
 
 [generators/fusion_in_decoder/README.md](generators/fusion_in_decoder/README.md)の内容に従います。上記の学習済モデルと同じ位置、同じ名前に再配置します。
 
@@ -474,7 +478,7 @@ __Accuracy__
 {"qid": "AIO02-1005", "prediction": "デュース"}
 ```
 
-#### 評価(補足)
+#### (追記)評価
 
 2023-01-13. step=30000の設定のはずが、step=5000で学習が打ち切られてしまったので(Windowsの再起動?)、その時点のモデルでの評価。学習時間はおよそ11h30m。
 
@@ -488,7 +492,7 @@ __Accuracy__
 ```
 
 
-## (不可)submission.sh について
+## (現状不可)submission.sh について
 最終的に提出を行う Docker イメージ内で、与えられた質問データに対して推論を行うスクリプトです。
 
 このスクリプトを実行する際には、`Dockerfile`に下記のコードを記載した上で Docker イメージのビルドを行ってください。
