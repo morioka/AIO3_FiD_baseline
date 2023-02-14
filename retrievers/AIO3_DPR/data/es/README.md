@@ -3,9 +3,10 @@
 データ拡張のためにpassageデータ作成用のelasticsearchを用いたい。
 そのために `retrievers/AIO3_DPR/data/README.md` 記載の手順のように wikipediaデータを全クロールすることは避けたい。
 
-ここでは、上記のデータ作成の過程で作られて `download_data.sh` で入手できる `jawiki-20220404-c400-large.tsv.gz` を加工前の `passages-jawiki-20220404-paragraphs.json.gz` 相当に変形する。これを元の手順の `build_es_index_passages.py` を用いて elasticsearch に流し込む。
+ここでは、上記のデータ作成の過程で作られて `AIO3_DPR/download_data.sh` の実行で入手できる `jawiki-20220404-c400-large.tsv.gz` を加工前の `passages-jawiki-20220404-paragraphs.json.gz` 相当に変形する。これを元の手順の `build_es_index_passages.py` を用いて elasticsearch に流し込む。
 
 ```bash
+AIO3_DPR/scripts/download_data.sh
 python make_es_wikipedia_passages_json.py \
 --input_file wiki/jawiki-20220404-c400-large.tsv.gz \
 --output_file passages-jawiki-20220404-paragraphs.json.gz
