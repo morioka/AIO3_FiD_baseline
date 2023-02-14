@@ -1,6 +1,5 @@
 # Copyright 2021 Masatoshi Suzuki (@singletongue)
-# code modified by Yasuhiro Moioka (@morioka), 2023.
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -12,17 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Modified 2023 Yasuhiro Morioka (@morioka)
 import argparse
 import gzip
 import json
+import csv
 
 from tqdm import tqdm
 
 
 def main(args: argparse.Namespace):
-    with gzip.open(args.input_file, "rt") as f, gzip.open(args.output_file, "wt", encoding='utf-8') as fo:
-        for line in tqdm(f):
-            id_, text, title = line.strip().split('\t')
+    with gzip.open(args.input_file, "rt", newline='', encoding='utf-8') as f, gzip.open(args.output_file, "wt", encoding='utf-8') as fo:
+        reader = csv.reader(f, delimiter='\t')
+        for line in tqdm(reader):
+            id_, text, title = line[0], line[1], line[2]
 
             # skip first line
             if (id_ == 'id') & (text == 'text') & (title == 'title'):
