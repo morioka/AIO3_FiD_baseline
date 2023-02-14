@@ -17,3 +17,24 @@ python make_es_wikipedia_passages_json.py \
   - index登録のほか、QAデータセットへのパッセージ付与は、`retrievers/AIO3_DPR/data/README.md` の手順を参照すること。
 - 参考のため、上記データを流し込む elasticsearch は `docker-compose.yaml` で起動する。
 
+----
+
+- 以下のファイルを追加。
+  - `convert_quiz_tsv_to_aio3_jsonl.py` 
+    - question-answerのTSVをpassageなしのSQuAD JSONL形式に変換する。passageを付与する前段階
+  - `convert_aio3_jsonl_to_quiz_tsv.py`
+    - positive contextが付与された SQuAD JSONLをquestion-answer-contextのTSVに変換する。
+
+```bash
+python convert_quiz_tsv_to_aio3_jsonl.py \
+--input_file quiz_question_answer_with_header.tsv \
+--output_file aio3_squad_style_question_answer.json 
+```
+
+```bash
+python convert_aio3_jsonl_to_quiz_tsv.py \
+--input_file aio3_squad_style_question_answer_context.json \
+--output_file quiz_question_answer_context_without_header.tsv
+```
+
+
