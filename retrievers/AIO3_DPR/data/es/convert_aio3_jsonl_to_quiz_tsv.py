@@ -22,14 +22,14 @@ from tqdm import tqdm
 
 def main(args: argparse.Namespace):
 
-    # SQuAD形式から Question-Answer-Context のTSVに直す
+    # SQuAD JSONL形式から Question-Answer-Context のTSVに直す
     # 複数の positive_ctx がある場合は、複数の行に直す
     # answers には1個のanswerが含まれるのみの前提
-    df = read_json(args.input_file)
+    df = pd.read_json(args.input_file)
 
     quiz = []
     for i, row in tqdm(df.iterrows()):
-        if len(row['positive_ctxs']):
+        if len(row['positive_ctxs']) > 0:
             for p in row['positive_ctxs']:
                 quiz.append([row['question'],   # question
                              row['answers'][0], # answer
