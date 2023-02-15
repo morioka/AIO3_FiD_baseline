@@ -36,10 +36,10 @@ def clean_answers(x):
 
 def main(args: argparse.Namespace):
 
-    # Question-Answer の TSVからSQuAD形式に整形する
+    # Question-Answer の TSVからSQuAD JSONL形式に整形する
     # answers には1個のanswerのみ
     # context情報はなし
-    df = read_csv(args.input_file, sep='\t')
+    df = pd.read_csv(args.input_file, sep='\t')
 
     df['title'] = df['genre'].apply(lambda x: x if x is not None else "ジャンルなし")
     df['answers'] = df['answer'].apply(lambda x: clean_answers(x))
